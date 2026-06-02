@@ -1,9 +1,13 @@
+@php
+    use App\Enums\Role;
+@endphp
+
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
-    <title>@yield('title', 'Admin Panel')</title>
+    <title>@yield('title', 'Welcome')</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
@@ -11,15 +15,18 @@
 </head>
 
 <body class="bg-light">
+    @auth
+        @if(auth()->user()->hasRole(Role::ADMIN->value))
+            <nav class="navbar navbar-dark bg-dark px-3">
+                <a class="navbar-brand" href="/admin/dashboard">Admin Panel</a>
 
-    <nav class="navbar navbar-dark bg-dark px-3">
-        <a class="navbar-brand" href="/admin/dashboard">Admin Panel</a>
-
-        <form method="POST" action="{{ route('admin.logout') }}">
-            @csrf
-            <button class="btn btn-danger btn-sm">Logout</button>
-        </form>
-    </nav>
+                <form method="POST" action="{{ route('admin.logout') }}">
+                    @csrf
+                    <button class="btn btn-danger btn-sm">Logout</button>
+                </form>
+            </nav>
+        @endif
+    @endauth
 
     <div class="container mt-4">
 
@@ -33,6 +40,8 @@
         const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         axios.defaults.headers.common['X-CSRF-TOKEN'] = token;
     </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     @stack('scripts')
 

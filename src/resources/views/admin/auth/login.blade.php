@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('layouts.bootstrap')
 
 @section('title', 'Login')
 
