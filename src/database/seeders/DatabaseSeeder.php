@@ -2,7 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Enums\MediaCollection;
 use App\Enums\Role as RoleEnum;
+use App\Models\Ticket;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -32,5 +34,16 @@ class DatabaseSeeder extends Seeder
             'email' => 'customer@example.com',
         ]);
         $customer->assignRole(RoleEnum::CUSTOMER->value);
+
+        $tickets = Ticket::factory(2)->create([
+            'customer_id' => $customer->id,
+        ]);
+
+        foreach ($tickets as $ticket) {
+            $ticket
+                ->addMediaFromString('fake content')
+                ->usingFileName('test-' . fake()->uuid() . '.txt')
+                ->toMediaCollection(MediaCollection::ATTACHMENTS->value);
+        }
     }
 }
