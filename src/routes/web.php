@@ -16,4 +16,7 @@ Route::middleware(['auth', "role:$adminRole"])->prefix('admin')->group(function 
         return view('admin.dashboard');
     })->name('admin.dashboard');
 
+    Route::get('/tickets', [TicketController::class, 'index'])->name('admin.tickets.index');
+    Route::get('/tickets/{ticket}', [TicketController::class, 'show'])->name('admin.tickets.show');
+    Route::patch('/tickets/{ticket}', [TicketController::class, 'update'])->name('admin.tickets.update');
 });
