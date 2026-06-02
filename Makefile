@@ -17,6 +17,6 @@ composer-install:
 migrate:
 	docker compose exec app php artisan migrate:fresh --seed
 
-bootstrap: up mysql-wait composer-install migrate
+boot: up mysql-wait composer-install migrate
 
-reset: down bootstrap
+reset: down boot
