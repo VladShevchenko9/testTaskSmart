@@ -17,7 +17,7 @@ return new class extends Migration {
             $table->string('subject');
             $table->text('message');
             $table->string('status')->default(TicketStatus::NEW->value);
-            $table->timestamp('replied_at')->nullable();
+            $table->timestamp('manager_reply_at')->nullable();
             $table->timestamps();
             $table->index('status');
             $table->index('customer_id');
