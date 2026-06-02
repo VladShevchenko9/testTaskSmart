@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\TicketStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -15,7 +16,7 @@ return new class extends Migration {
                 ->cascadeOnDelete();
             $table->string('subject');
             $table->text('message');
-            $table->string('status')->default('new');
+            $table->string('status')->default(TicketStatus::NEW->value);
             $table->timestamp('replied_at')->nullable();
             $table->timestamps();
             $table->index('status');
