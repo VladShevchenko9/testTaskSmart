@@ -13,4 +13,10 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
+RUN { \
+    echo "upload_max_filesize=50M"; \
+    echo "post_max_size=50M"; \
+    echo "memory_limit=512M"; \
+} > /usr/local/etc/php/conf.d/uploads.ini
+
 CMD ["php-fpm"]
