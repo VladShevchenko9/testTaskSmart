@@ -13,14 +13,20 @@ Route::get('/login', fn() => redirect()->route('admin.login'))->name('login');
 Route::get('/admin/login', [AdminAuthController::class, 'showLogin'])->name('admin.login');
 Route::post('/admin/login', [AdminAuthController::class, 'login'])->name('admin.login.submit');
 
+Route::get('/widget', [TicketController::class, 'widget'])->name('tickets.widget');
+Route::prefix('api')->group(function () {
+    Route::post('/tickets', [TicketController::class, 'store'])->name('api.tickets.store');
+});
+
 Route::middleware(['auth', "role:$adminRole"])->prefix('admin')->group(function () {
     Route::post('/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
 
-    Route::get('/dashboard', function () {
-        return view('admin.dashboard');
-    })->name('admin.dashboard');
+    Route::get('/tickets-page', [TicketController::class, 'adminTicketsPage'])->name('admin.tickets.page');
 
-    Route::get('/tickets', [TicketController::class, 'index'])->name('admin.tickets.index');
-    Route::get('/tickets/{ticket}', [TicketController::class, 'show'])->name('admin.tickets.show');
-    Route::patch('/tickets/{ticket}', [TicketController::class, 'update'])->name('admin.tickets.update');
+    Route::prefix('api')->group(function () {
+        Route::get('/tickets/statistics', [TicketController::class, 'statistics'])->name('admin.api.tickets.statistics');
+        Route::get('/tickets', [TicketController::class, 'index'])->name('admin.api.tickets.index');
+        Route::get('/tickets/{ticket}', [TicketController::class, 'show'])->name('admin.api.tickets.show');
+        Route::patch('/tickets/{ticket}', [TicketController::class, 'update'])->name('admin.api.tickets.update');
+    });
 });
