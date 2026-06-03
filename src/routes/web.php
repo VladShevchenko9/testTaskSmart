@@ -7,10 +7,14 @@ use Illuminate\Support\Facades\Route;
 
 $adminRole = Role::ADMIN->value;
 
+Route::get('/', [TicketController::class, 'welcome'])->name('welcome');
+Route::get('/login', fn() => redirect()->route('admin.login'))->name('login');
+
 Route::get('/admin/login', [AdminAuthController::class, 'showLogin'])->name('admin.login');
 Route::post('/admin/login', [AdminAuthController::class, 'login'])->name('admin.login.submit');
 
 Route::middleware(['auth', "role:$adminRole"])->prefix('admin')->group(function () {
+    Route::post('/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');
 
     Route::get('/dashboard', function () {
         return view('admin.dashboard');

@@ -2,51 +2,41 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\Role;
+use App\Http\Requests\AdminLoginRequest;
+use App\Services\AdminAuthService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class AdminAuthController extends Controller
 {
+    public function __construct(private readonly AdminAuthService $adminAuthService)
+    {
+    }
+
     public function showLogin(): View
     {
         return view('admin.auth.login');
     }
 
-    public function login(Request $request): RedirectResponse
+    public function login(AdminLoginRequest $request): RedirectResponse
     {
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required'],
-        ]);
+        $credentials = $request->validated();
 
-        if (Auth::attempt($credentials)) {
-            if (!Auth::user()?->hasRole(Role::ADMIN->value)) {
-                Auth::logout();
-
-                return back()->withErrors([
-                    'email' => 'Access denied'
-                ]);
-            }
-
-            $request->session()->regenerate();
-
-            return redirect()->route('admin.dashboard');
+        if ($this->adminAuthService->attemptAdminLogin($credentials, $request)) {
+            return redirect()->route('admin.tickets.page');
         }
 
-        return back()->withErrors([
-            'email' => 'Invalid credentials',
-        ]);
+        return back()
+            ->withInput($request->only('email'))
+            ->withErrors([
+                'email' => 'Invalid credentials',
+            ]);
     }
 
     public function logout(Request $request): RedirectResponse
     {
-        Auth::logout();
-
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        $this->adminAuthService->logout($request);
 
         return redirect()->route('admin.login');
     }

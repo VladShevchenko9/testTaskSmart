@@ -18,7 +18,7 @@
     @auth
         @if(auth()->user()->hasRole(Role::ADMIN->value))
             <nav class="navbar navbar-dark bg-dark px-3">
-                <a class="navbar-brand" href="/admin/dashboard">Admin Panel</a>
+                <a class="navbar-brand" href="{{ route('admin.tickets.page') }}">Admin Panel</a>
 
                 <form method="POST" action="{{ route('admin.logout') }}">
                     @csrf
@@ -34,6 +34,7 @@
 
     </div>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
         axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
@@ -42,6 +43,7 @@
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    @vite('resources/js/app.js')
 
     @stack('scripts')
 
