@@ -1,0 +1,295 @@
+openapi: 3.0.3
+info:
+  title: Ticket Support API
+  version: 1.0.0
+  description: API for ticket creation and admin ticket management.
+servers:
+  - url: http://localhost:8000
+tags:
+  - name: Public Tickets
+  - name: Admin Tickets
+paths:
+  /api/tickets:
+    post:
+      tags: [Public Tickets]
+      summary: Create a ticket
+      description: Creates a customer ticket with optional attachments.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [name, email, subject, message]
+              properties:
+                name:
+                  type: string
+                  example: John Doe
+                email:
+                  type: string
+                  format: email
+                  example: john@example.com
+                subject:
+                  type: string
+                  example: Payment issue
+                message:
+                  type: string
+                  example: I cannot complete my payment.
+                attachments:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        '201':
+          description: Ticket created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketCreateResponse'
+        '422':
+          description: Validation or attachment error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /admin/api/tickets/statistics:
+    get:
+      tags: [Admin Tickets]
+      summary: Get ticket statistics
+      description: |
+        Returns ticket statistics for day, week and month.
+        Requires authenticated admin session.
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Statistics payload
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      day:
+                        type: integer
+                        example: 3
+                      week:
+                        type: integer
+                        example: 18
+                      month:
+                        type: integer
+                        example: 74
+        '401':
+          description: Unauthenticated
+        '403':
+          description: Forbidden (not admin)
+
+  /admin/api/tickets:
+    get:
+      tags: [Admin Tickets]
+      summary: Get paginated ticket list
+      description: Requires authenticated admin session.
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: query
+          name: id
+          schema:
+            type: integer
+        - in: query
+          name: customer_name
+          schema:
+            type: string
+        - in: query
+          name: customer_email
+          schema:
+            type: string
+        - in: query
+          name: subject
+          schema:
+            type: string
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [new, in_progress, processed]
+        - in: query
+          name: created_at
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Paginated list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Ticket'
+                  links:
+                    type: object
+                  meta:
+                    type: object
+        '401':
+          description: Unauthenticated
+        '403':
+          description: Forbidden
+
+  /admin/api/tickets/{ticket}:
+    get:
+      tags: [Admin Tickets]
+      summary: Get one ticket
+      description: Requires authenticated admin session.
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: ticket
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Ticket details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Ticket'
+        '401':
+          description: Unauthenticated
+        '403':
+          description: Forbidden
+    patch:
+      tags: [Admin Tickets]
+      summary: Update ticket status
+      description: Requires authenticated admin session.
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: ticket
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [new, in_progress, processed]
+      responses:
+        '200':
+          description: Updated ticket
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Ticket'
+        '422':
+          description: Validation error
+        '401':
+          description: Unauthenticated
+        '403':
+          description: Forbidden
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: laravel_session
+  schemas:
+    TicketCustomer:
+      type: object
+      properties:
+        id:
+          type: integer
+          nullable: true
+          example: 2
+        name:
+          type: string
+          nullable: true
+          example: Customer
+        email:
+          type: string
+          nullable: true
+          example: customer@example.com
+    TicketAttachment:
+      type: object
+      properties:
+        url:
+          type: string
+          example: http://localhost:8000/storage/2/example.txt
+        file_name:
+          type: string
+          example: example.txt
+    Ticket:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 10
+        subject:
+          type: string
+        message:
+          type: string
+        status:
+          type: string
+          enum: [new, in_progress, processed]
+        manager_reply_at:
+          type: string
+          nullable: true
+          example: '2026-06-02 18:34:12'
+        created_at:
+          type: string
+          nullable: true
+          example: '2026-06-02 18:30:00'
+        customer:
+          $ref: '#/components/schemas/TicketCustomer'
+        attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/TicketAttachment'
+    TicketCreateResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Ticket created successfully
+        data:
+          $ref: '#/components/schemas/Ticket'
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Validation failed
